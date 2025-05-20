@@ -7,9 +7,12 @@
 Adafruit_MPU6050 mpu;
 
 // LED pins (GPIO)
-#define YELLOW_LED 3  // GPIO3
-#define GREEN_LED  4  // GPIO4
-#define WHITE_LED  9  // GPIO9
+#define YELLOW_LED D2  // GPIO3
+#define GREEN_LED  D3  // GPIO4
+#define WHITE_LED  D10  // GPIO9
+
+// Button pin
+#define BUTTON_PIN D9   // For example, GPIO8 — change if needed
 
 // Sampling config
 #define SAMPLE_RATE_MS 10
@@ -43,6 +46,9 @@ void setup()
     digitalWrite(YELLOW_LED, LOW);
     digitalWrite(GREEN_LED, LOW);
     digitalWrite(WHITE_LED, LOW);
+
+    // Button setup
+    pinMode(BUTTON_PIN, INPUT_PULLUP);
 
     // MPU init
     Serial.println("Initializing MPU6050...");
@@ -133,6 +139,16 @@ void run_inference() {
 }
 
 void loop() {
+  // Trigger via button (LOW means pressed)
+    if (digitalRead(BUTTON_PIN) == LOW && !capturing) {
+        Serial.println("Button pressed! Starting gesture capture...");
+        sample_count = 0;
+        capturing = true;
+        capture_start_time = millis();
+        last_sample_time = millis();
+        delay(200);  // debounce
+    }
+
     if (Serial.available() > 0) {
         char cmd = Serial.read();
         if (cmd == 'o') {
